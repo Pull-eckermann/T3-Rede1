@@ -12,21 +12,21 @@ QUINTETO = 10
 
 def pontuation(indice):
   if indice == 1:
-    return PAR
+    return int(PAR)
   if indice == 2:
-    return TRI0
+    return int(TRI0)
   if indice == 3:
-    return PARES_2
+    return int(PARES_2)
   if indice == 4:
-    return FULL_HOUSE
+    return int(FULL_HOUSE)
   if indice == 5:
-    return SEQUENCIA_BAIXA
+    return int(SEQUENCIA_BAIXA)
   if indice == 6:
-    return SEQUENCIA_ALTA
+    return int(SEQUENCIA_ALTA)
   if indice == 7:
-    return QUADRA
+    return int(QUADRA)
   if indice == 8:
-    return QUINTETO
+    return int(QUINTETO)
 
 def combination(indice):
   if indice == 1:
