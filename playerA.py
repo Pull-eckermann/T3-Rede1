@@ -129,7 +129,6 @@ while(True):
         print('O Holder atual é: Jogador ',upk[0])
         print('Combinação apostada: '+comp_functions.combination(upk[1]))
         print('Valor da aposta: ',upk[2])
-
         decisao = input('Voce deseja tomar a aposta e aumentar o seu valor?[y/n]')
         if decisao == 'n':
             packed = struct.pack('c i i', upk[0], upk[1], upk[2])
@@ -173,7 +172,7 @@ while(True):
                 sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
 
         else:   #Você não é o holder, passa a mensagem pra frente
-            print('Voce nao e o Holder, aguarde o resultado das jogadas...')
+            print('O Holder e',upk[1],'aguarde o resultado das jogadas...')
             packed = struct.pack('c c i i', upk[0], upk[1], upk[2], upk[3])
             sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT)) 
 
@@ -183,18 +182,18 @@ while(True):
         if upk[1] != b'A':  #Se você é o holder ignore, se não imprime na tela
             if upk[2] == 1:
                 print('O jogador ',upk[1],' venceu a partida, seu saldo atual e: ',upk[3])
-                print('Iniciando uma nova partida...')
+                print('************Iniciando uma nova partida*************')
                 packed = struct.pack('c c i i', upk[0], upk[1], upk[2], upk[3])
                 sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
             else:
                 print('O jogador ',upk[1],' perdeu a partida, seu saldo atual e: ',upk[3])
-                print('Iniciando uma nova partida...')
+                print('************Iniciando uma nova partida*************')
                 packed = struct.pack('c c i i', upk[0], upk[1], upk[2], upk[3])
                 sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
         else:
             packed = struct.pack('c c i i', upk[0], upk[1], upk[2], upk[3])
             sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
-
+        #Se a origem é de quem você recebe, aguarde o bastão
         if upk[0] == b'D':
             data, _ = sock.recvfrom(100)
             if data == b'bastao':
