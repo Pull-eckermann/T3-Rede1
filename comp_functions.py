@@ -51,15 +51,14 @@ def combination(indice):
     return 'quinteto'
 
 def lanca_dados(aposta):
-  dado1, dado2, dado3, dado4, dado5, dado6 = 0
-  d1, d2, d3, d4, d5, d6 = False
-  cont = 0
+  dado1 = dado2 = dado3 = dado4 = dado5 = 0
+  d1 = d2 = d3 = d4 = d5 = False
 
   #Faz as jogadas de dados
   print('INICIANDO JOGADA DE DADOS')
   for i in range(1,4):
-    print('Tentativa numero',i)
     print('-----------------------')
+    print('Tentativa numero',i)
     if d1 == False:
       dado1 = random.randint(1, 6)
     print('Dado1:',dado1)
@@ -75,35 +74,60 @@ def lanca_dados(aposta):
     if d5 == False:
       dado5 = random.randint(1, 6)
     print('Dado5:',dado5)
-    if d6 == False:  
-      dado6 = random.randint(1, 6)
-    print('Dado6:',dado6)
-    print('-----------------------')
-    print('Voce poder bloquear ate 5 dados')
-    print('Digite, separando por espaço os dados que deseja bloquear(Se nenhum, digite 0)')
-    k = input('Ex\: 1 2 5')
-    if k != '0' or cont <= 5:
-      if '1' in k and d1 == False:
-        cont += 1
-        d1 = True
-      if '2' in k and d2 == False:
-        cont += 1
-        d2 = True
-      if '3' in k and d3 == False:
-        cont += 1
-        d3 = True
-      if '4' in k and d4 == False:
-        cont += 1
-        d4 = True
-      if '5' in k and d5 == False:
-        cont += 1
-        d5 = True
-      if '6' in k and d6 == False:
-        cont += 1
-        d6 = True
-  
+    if i != 3:
+      print('Voce poder bloquear ate 5 dados')
+      print('Digite, separando por espaço os dados que deseja bloquear (Ex\: 1 2 5)')
+      k = input('(Se nenhum, digite 0): ')
+      if k != '0':
+        if '1' in k and d1 == False:
+          d1 = True
+        if '2' in k and d2 == False:
+          d2 = True
+        if '3' in k and d3 == False:
+          d3 = True
+        if '4' in k and d4 == False:
+          d4 = True
+        if '5' in k and d5 == False:
+          d5 = True
+
   #avalia os resultados
-  results = list([dado1, dado2, dado3, dado4, dado5, dado6])
+  comb = 'Nenhum resultado'
+  results = list([dado1, dado2, dado3, dado4, dado5])
+  results.sort()
+  #Se tem 2 ou 3 ou 4 ou 5 é sequencia
+  if (2 in results) and (3 in results) and (4 in results) and (5 in results):
+    if 1 in results:
+      comb = combination(5) #Sequencia Baixa
+    elif 6 in results:
+      comb = combination(6) #Sequecia Alta
+    else:
+      comb = combination(1) #Par
+  else: 
+    aux = list()
+    for i in range(1,7):
+      if i in results:
+        aux.append(i)
+    if len(aux) == 4:
+      comb = combination(1) #Par
+    if len(aux) == 3:
+      #Se algum dos elementos de aux for repetida 3 vezes, então é um trio
+      if (results.count(aux[0]) == 3) or (results.count(aux[1]) == 3) or (results.count(aux[2]) == 3): 
+        comb = combination(2) #Trio
+      else:
+        comb = combination(3) #Dois pares
+    if len(aux) == 2:    
+      if (results.count(aux[0]) == 3) or (results.count(aux[1]) == 3):
+        comb = combination(4) #Full House
+      else:
+        comb = combination(7) #Full House
+    if len(aux) == 1: 
+        comb = combination(8) #Quinteto
+  #Encerra a jogada
+  print('Resultado da jogada: '+comb)
+  if comb == aposta:
+    return True
+  else:
+    return False
   
 
 
