@@ -54,16 +54,13 @@ while(True):
 
             comb = comp_functions.combination(upk[1])
             print('Voce e o Holder, apostando a combinação '+comb+' num valor de ',upk[2])
-
-            #Começa a jogada de Dados
             result = comp_functions.lanca_dados(comb)
-            #Termina a Jogada de dados
 
             if result == False: #Indica que a origem perdeu
                 saldo = saldo - upk[3]
-                print('O jogador A perdeu a jogada')
+                print('Voce perdeu a jogada')
                 if saldo <= 0:
-                    print('O jogador A atingiu saldo nulo')
+                    print('Voce atingiu saldo nulo')
                     print('***FIM DE JOGO***')
                     exit(0)
                 else:
@@ -74,7 +71,7 @@ while(True):
 
             if result == True: #Indica que o jogador venceu
                 saldo = saldo + comp_functions.pontuation(upk[1])
-                print('O jogador A venceu a jogada')
+                print('Voce venceu a jogada')
                 print('Seu saldo e de ',saldo,'fichas')
                        # em ordem: origem, jogador, resultado, saldo
                 packed = struct.pack('c c i i', b'A', b'A', 1, saldo)
