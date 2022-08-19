@@ -7,6 +7,7 @@ import comp_functions
 UDP_IP = "127.0.0.1"
 UDP_PORTA_REC = 6453
 UDP_PORTA_SENT = 6454
+dest = (UDP_IP, UDP_PORTA_SENT)
 
 #Globais
 bastao = False
@@ -34,20 +35,21 @@ while(True):
 
                 """)
         aposta = int(input('Qual será a combinação escolhida?(Escolha um número de 1 a 8): '))
-        print("Seu saldo: ",saldo)
+        print("Seu saldo:", saldo)
         valor = int(input('Valor da aposta (Valor mínimo 1 ficha): '))
-        packed = struct.pack('c i i', b'D', aposta, valor) # em ordem: Holder, aposta, valor
-        sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
+        dados = ('D', 'D', aposta, valor)
+        comp_functions.send(sock, dest, dados)
         print('Aguardando aposta...')
-
+        
+        #Aguarda a apostas encerrarem e encaminha aposta ao jogador
+        upk = comp_functions.receiv(sock)
         #---------------------------------------------------------------------------------------------
         #Origem é o Holder
-        if(upk[0] == b'D'):
-            packed = struct.pack('c c i i', b'D', b'D', upk[1], upk[2])   # em ordem: origem, Holder, combinação, valor
-            sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))   #Informa ao jogador que ele pode realizar a jogada
+        if(upk[0] == 'D'):
+            dados = ('D', 'D', upk[2], upk[3])   # em ordem: Origem, Holder, aposta, valor da aposta
+            comp_functions.send(sock, dest, dados)   #Informa ao jogador que ele pode realizar a jogada
             #Aguarda a mensagem retornar e começa as jogadas
-            data, _ = sock.recvfrom(100)
-            upk = struct.unpack('c c i i', data)
+            upk = comp_functions.receiv(sock)
 
             comb = comp_functions.combination(upk[2])
             print('Voce e o Holder, apostando a combinação '+comb+' num valor de ',upk[3])
@@ -63,30 +65,29 @@ while(True):
                 else:
                     print('Seu saldo e de ',saldo,'fichas')
                                     # em ordem: origem, jogador, resultado, saldo
-                    packed = struct.pack('c c i i', b'D', b'D', 0, saldo)
-                    sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
+                    dados = ('D', 'D', 0, saldo)
+                    comp_functions.send(sock, dest, dados)
 
             if result == True: #Indica que o jogador venceu
                 saldo = saldo + comp_functions.pontuation(upk[2])
                 print('Voce venceu a jogada')
                 print('Seu saldo e de ',saldo,'fichas')
                        # em ordem: origem, jogador, resultado, saldo
-                packed = struct.pack('c c i i', b'D', b'D', 1, saldo)
-                sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
+                dados = ('D', 'D', 1, saldo)
+                comp_functions.send(sock, dest, dados)
         #---------------------------------------------------------------------------------------------
         #Outro jogador tem a vez de jogar, informa a ele
         else:
             comb = comp_functions.combination(upk[1])
             print('Jogador ',upk[0],' ira jogar apostando a combinação '+comb+' num valor de ',upk[2])
 
-            packed = struct.pack('c c i i', b'D', upk[0], upk[1], upk[2])   # em ordem: origem, Holder, combinação, valor
-            sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))   #Informa ao jogador que ele pode realizar a jogada
+            dados =  ('D', upk[0], upk[1], upk[2])   # em ordem: origem, Holder, combinação, valor
+            comp_functions.send(sock, dest, dados)   #Informa ao jogador que ele pode realizar a jogada
 
             #Aguarda mensagem da jogada encerrada
             while True:    
-                data, _ = sock.recvfrom(100)
-                upk = struct.unpack('c c i i', data)    # em ordem: Origem, Holder, resultado, saldo
-                if upk[0] == b'D':
+                upk = comp_functions.receiv(sock)    # em ordem: Origem, Holder, resultado, saldo
+                if upk[0] == 'D':
                     if upk[2] == 0: #Indica que o jogador perdeu
                         print('O jogador ',upk[1],' perdeu a jogada')
                         if upk[3] <= 0:
@@ -96,53 +97,50 @@ while(True):
                         else:
                             print('Seu saldo e de ',upk[3],' fichas')
                                         # em ordem: origem, Holder, resultado, saldo
-                            packed = struct.pack('c c i i', b'D', upk[1], upk[2], upk[3])
-                            sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
+                            dados =  ('D', upk[1], upk[2], upk[3])
+                            comp_functions.send(sock, dest, dados)
                             break
 
                     if upk[2] == 1: #Indica que o jogador venceu
                         print('O jogador ',upk[1],' venceu a jogada')
                         print('Seu saldo e de ',upk[3],'fichas')
                                 # em ordem: origem, Holder, resultado, saldo
-                        packed = struct.pack('c c i i', b'D', upk[1], upk[2], upk[3])
-                        sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
+                        dados = ('D', upk[1], upk[2], upk[3])
+                        comp_functions.send(sock, dest, dados)
                         break
         #---------------------------------------------------------------------------------------------
         #Aguarda menssagem dar a volta na rede, fim da partida e passa o bastão
         while True:    
-            data, _ = sock.recvfrom(100) # buffer size is 100 bytes
-            upk = struct.unpack('c c i i', data)
-            if upk[0] == b'D':  #Mensagem passou por toda a rede
-                print('Vez do jogador A')
+            upk = comp_functions.receiv(sock)
+            if upk[0] == 'D':  #Mensagem passou por toda a rede
+                print('Vez do jogador B')
                 jogada = b'bastao'
-                sock.sendto(jogada, (UDP_IP, UDP_PORTA_SENT))
+                sock.sendto(jogada, dest)
                 bastao = False
                 break        #Passa para o próximo laço
         print('************Iniciando uma nova partida*************')
     #Você não possui o bastão -----------------------------------------
     else:
         print('Aguardando aposta...')
-        data, _ = sock.recvfrom(100)
-        upk = struct.unpack('c i i', data)  # em ordem: Holder, aposta, valor da aposta
-        print('O Holder atual é: Jogador ',upk[0])
-        print('Combinação apostada: '+comp_functions.combination(upk[1]))
-        print('Valor da aposta: ',upk[2])
+        upk = comp_functions.receiv(sock)  # em ordem: Origem, Holder, aposta, valor da aposta
+        print('O Holder atual é: Jogador ',upk[1])
+        print('Combinação apostada: '+comp_functions.combination(upk[2]))
+        print('Valor da aposta: ',upk[3])
         decisao = input('Voce deseja tomar a aposta e aumentar o seu valor?[y/n]')
         if decisao == 'n':
-            packed = struct.pack('c i i', upk[0], upk[1], upk[2])
-            sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
+            dados = (upk[0], upk[1], upk[2], upk[3])
+            comp_functions.send(sock, dest, dados)
         else:
             print('Valor da aposta aumentado em 1')
-            valor = upk[2] + 1
-            packed = struct.pack('c i i', b'D', upk[1], valor)
-            sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
+            valor = upk[3] + 1
+            dados = (upk[0], 'D', upk[2], valor)
+            comp_functions.send(sock, dest, dados)
             print('Aguardando resultado...')
         
         #Aguarda para saber se será o holder
-        data, _ = sock.recvfrom(100)
-        upk = struct.unpack('c c i i', data)    # em ordem: origem, holder, combinação, valor
+        upk = comp_functions.receiv(sock)    # em ordem: origem, holder, combinação, valor
 
-        if upk[1] == b'D': #Você é holder
+        if upk[1] == 'D': #Você é holder
             comb = comp_functions.combination(upk[2])
             print('Voce e o Holder, apostando a combinação '+comb+' num valor de ',upk[3])
             result = comp_functions.lanca_dados(comb)
@@ -157,41 +155,40 @@ while(True):
                 else:
                     print('Seu saldo e de',saldo,'fichas')
                                     # em ordem: origem, jogador, resultado, saldo
-                    packed = struct.pack('c c i i', upk[0], upk[1], 0, saldo)
-                    sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
+                    dados = (upk[0], upk[1], 0, saldo)
+                    comp_functions.send(sock, dest, dados)
 
             if result == True: #Indica que o jogador venceu
                 saldo = saldo + comp_functions.pontuation(upk[2])
                 print('Voce venceu a jogada')
                 print('Seu saldo e de ',saldo,'fichas')
                        # em ordem: origem, jogador, resultado, saldo
-                packed = struct.pack('c c i i', upk[0], upk[1], 1, saldo)
-                sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
+                dados = (upk[0], upk[1], 1, saldo)
+                comp_functions.send(sock, dest, dados)
 
         else:   #Você não é o holder, passa a mensagem pra frente
             print('O Holder e',upk[1],'aguarde o resultado das jogadas...')
-            packed = struct.pack('c c i i', upk[0], upk[1], upk[2], upk[3])
-            sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT)) 
+            dados = (upk[0], upk[1], upk[2], upk[3])
+            comp_functions.send(sock, dest, dados) 
 
         #Aguarde o resultado da partida
-        data, _ = sock.recvfrom(100)
-        upk = struct.unpack('c c i i', data)    # em ordem: Origem, Holder, resultado, saldo
-        if upk[1] != b'D':  #Se você é o holder ignore, se não imprime na tela
+        upk = comp_functions.receiv(sock)    # em ordem: Origem, Holder, resultado, saldo
+        if upk[1] != 'D':  #Se você é o holder ignore, se não imprime na tela
             if upk[2] == 1:
                 print('O jogador ',upk[1],' venceu a partida, seu saldo atual e: ',upk[3])
                 print('************Iniciando uma nova partida*************')
-                packed = struct.pack('c c i i', upk[0], upk[1], upk[2], upk[3])
-                sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
+                dados = (upk[0], upk[1], upk[2], upk[3])
+                comp_functions.send(sock, dest, dados)
             else:
                 print('O jogador ',upk[1],' perdeu a partida, seu saldo atual e: ',upk[3])
                 print('************Iniciando uma nova partida*************')
-                packed = struct.pack('c c i i', upk[0], upk[1], upk[2], upk[3])
-                sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
+                dados = (upk[0], upk[1], upk[2], upk[3])
+                comp_functions.send(sock, dest, dados)
         else:
-            packed = struct.pack('c c i i', upk[0], upk[1], upk[2], upk[3])
-            sock.sendto(packed, (UDP_IP, UDP_PORTA_SENT))
+            dados = (upk[0], upk[1], upk[2], upk[3])
+            comp_functions.send(sock, dest, dados)
         #Se a origem é de quem você recebe, aguarde o bastão
-        if upk[0] == b'C':
+        if upk[0] == 'C':
             data, _ = sock.recvfrom(100)
             if data == b'bastao':
                 print('Voce recebeu o bastao')

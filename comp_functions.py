@@ -1,8 +1,7 @@
-from locale import DAY_6
 import re
-from sre_constants import JUMP
 import numpy
 import random
+import struct
 
 #Tabela de pontuação
 PAR = 1
@@ -129,6 +128,17 @@ def lanca_dados(aposta):
   else:
     return False
   
+def send(sock, dest, dados):
+  enquadramento = b'K'
+  # em ordem: Enquadramento, Origem, Holder, aposta, valor
+  packed = struct.pack('c c c i i',enquadramento, dados[1].encode(), dados[2].encode(), dados[3], dados[4])
+  sock.sendto(packed, dest)
 
-
-
+def receiv(sock):
+  while True:
+    data, _ = sock.recvfrom(100)
+    # em ordem: Enquadramento, Origem, Holder, resultado, saldo
+    upk = struct.unpack('c c c i i', data)
+    if upk[0] == b'K':  #O enquadramento esta correto
+      dados = (upk[1].decode("utf-8"), upk[2].decode("utf-8"), upk[3], upk[4])
+      return dados
