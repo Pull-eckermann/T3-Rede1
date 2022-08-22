@@ -130,15 +130,21 @@ def lanca_dados(aposta):
   
 def send(sock, dest, dados):
   enquadramento = b'K'
-  # em ordem: Enquadramento, Origem, Holder, aposta, valor
-  packed = struct.pack('c c c i i',enquadramento, dados[1].encode(), dados[2].encode(), dados[3], dados[4])
+  #Calcula CRC
+  crc = dados[2]^dados[3]
+  # em ordem: Enquadramento, Origem, Holder, aposta, valor, CRC
+  packed = struct.pack('c c c i i i',enquadramento, dados[0].encode(), dados[1].encode(), dados[2], dados[3], crc)
   sock.sendto(packed, dest)
 
 def receiv(sock):
   while True:
     data, _ = sock.recvfrom(100)
-    # em ordem: Enquadramento, Origem, Holder, resultado, saldo
-    upk = struct.unpack('c c c i i', data)
+    # em ordem: Enquadramento, Origem, Holder, aposta, valor, CRC
+    upk = struct.unpack('c c c i i i', data)
     if upk[0] == b'K':  #O enquadramento esta correto
-      dados = (upk[1].decode("utf-8"), upk[2].decode("utf-8"), upk[3], upk[4])
-      return dados
+      if upk[3]^upk[4] == upk[5]: #Não foi encontrado erro na mensagem
+        dados = (upk[1].decode("utf-8"), upk[2].decode("utf-8"), upk[3], upk[4])
+        return dados
+      else:
+        print('Erro: Mensagem apresenta modificacao no campo de dados')
+        exit(0)

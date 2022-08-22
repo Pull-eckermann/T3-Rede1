@@ -45,21 +45,23 @@ while(True):
         upk = comp_functions.receiv(sock)
         #---------------------------------------------------------------------------------------------
         #Origem é o Holder
-        if(upk[0] == 'C'):
+        if(upk[1] == 'C'):
             dados = ('C', 'C', upk[2], upk[3])   # em ordem: Origem, Holder, aposta, valor da aposta
             comp_functions.send(sock, dest, dados)   #Informa ao jogador que ele pode realizar a jogada
             #Aguarda a mensagem retornar e começa as jogadas
             upk = comp_functions.receiv(sock)
 
             comb = comp_functions.combination(upk[2])
-            print('Voce e o Holder, apostando a combinação '+comb+' num valor de ',upk[3])
+            print('Voce e o Holder, apostando a combinação '+comb+' num valor de',upk[3])
             result = comp_functions.lanca_dados(comb)
 
             if result == False: #Indica que a origem perdeu
                 saldo = saldo - upk[3]
-                print('Voce perdeu a jogada')
+                print('Voce perdeu a jogada!!')
                 if saldo <= 0:
-                    print('Voce atingiu saldo nulo')
+                    print('Voce atingiu saldo nulo!')
+                    dados = ('C', 'C', 0, saldo)
+                    comp_functions.send(sock, dest, dados)
                     print('***FIM DE JOGO***')
                     exit(0)
                 else:
@@ -70,18 +72,18 @@ while(True):
 
             if result == True: #Indica que o jogador venceu
                 saldo = saldo + comp_functions.pontuation(upk[2])
-                print('Voce venceu a jogada')
-                print('Seu saldo e de ',saldo,'fichas')
+                print('Voce venceu a jogada!!')
+                print('Seu saldo e de',saldo,'fichas!')
                        # em ordem: origem, jogador, resultado, saldo
                 dados = ('C', 'C', 1, saldo)
                 comp_functions.send(sock, dest, dados)
         #---------------------------------------------------------------------------------------------
         #Outro jogador tem a vez de jogar, informa a ele
         else:
-            comb = comp_functions.combination(upk[1])
-            print('Jogador ',upk[0],' ira jogar apostando a combinação '+comb+' num valor de ',upk[2])
+            comb = comp_functions.combination(upk[2])
+            print('Jogador '+upk[1]+' ira jogar apostando a combinação '+comb+' num valor de',upk[3])
 
-            dados =  ('C', upk[0], upk[1], upk[2])   # em ordem: origem, Holder, combinação, valor
+            dados =  ('C', upk[1], upk[2], upk[3])   # em ordem: origem, Holder, combinação, valor
             comp_functions.send(sock, dest, dados)   #Informa ao jogador que ele pode realizar a jogada
 
             #Aguarda mensagem da jogada encerrada
@@ -89,21 +91,23 @@ while(True):
                 upk = comp_functions.receiv(sock)    # em ordem: Origem, Holder, resultado, saldo
                 if upk[0] == 'C':
                     if upk[2] == 0: #Indica que o jogador perdeu
-                        print('O jogador ',upk[1],' perdeu a jogada')
+                        print('O jogador '+upk[1]+' perdeu a jogada!!')
                         if upk[3] <= 0:
-                            print('O jogador ',upk[1],' atingiu saldo nulo')
+                            print('O jogador '+upk[1]+' atingiu saldo nulo!')
+                            dados =  ('C', upk[1], upk[2], upk[3])
+                            comp_functions.send(sock, dest, dados)
                             print('***FIM DE JOGO***')
                             exit(0)
                         else:
-                            print('Seu saldo e de ',upk[3],' fichas')
+                            print('Seu saldo e de',upk[3],'fichas!')
                                         # em ordem: origem, Holder, resultado, saldo
                             dados =  ('C', upk[1], upk[2], upk[3])
                             comp_functions.send(sock, dest, dados)
                             break
 
                     if upk[2] == 1: #Indica que o jogador venceu
-                        print('O jogador ',upk[1],' venceu a jogada')
-                        print('Seu saldo e de ',upk[3],'fichas')
+                        print('O jogador '+upk[1]+' venceu a jogada!!')
+                        print('Seu saldo e de',upk[3],'fichas!')
                                 # em ordem: origem, Holder, resultado, saldo
                         dados = ('C', upk[1], upk[2], upk[3])
                         comp_functions.send(sock, dest, dados)
@@ -113,7 +117,7 @@ while(True):
         while True:    
             upk = comp_functions.receiv(sock)
             if upk[0] == 'C':  #Mensagem passou por toda a rede
-                print('Vez do jogador B')
+                print('Vez do jogador D!')
                 jogada = b'bastao'
                 sock.sendto(jogada, dest)
                 bastao = False
@@ -123,15 +127,16 @@ while(True):
     else:
         print('Aguardando aposta...')
         upk = comp_functions.receiv(sock)  # em ordem: Origem, Holder, aposta, valor da aposta
-        print('O Holder atual é: Jogador ',upk[1])
+        print('O Holder atual é: Jogador'+upk[1])
         print('Combinação apostada: '+comp_functions.combination(upk[2]))
-        print('Valor da aposta: ',upk[3])
+        print('Valor da aposta:',upk[3])
         decisao = input('Voce deseja tomar a aposta e aumentar o seu valor?[y/n]')
         if decisao == 'n':
             dados = (upk[0], upk[1], upk[2], upk[3])
             comp_functions.send(sock, dest, dados)
+            print('Aguardando resultado...')
         else:
-            print('Valor da aposta aumentado em 1')
+            print('Valor da aposta aumentado em 1!')
             valor = upk[3] + 1
             dados = (upk[0], 'C', upk[2], valor)
             comp_functions.send(sock, dest, dados)
@@ -142,32 +147,32 @@ while(True):
 
         if upk[1] == 'C': #Você é holder
             comb = comp_functions.combination(upk[2])
-            print('Voce e o Holder, apostando a combinação '+comb+' num valor de ',upk[3])
+            print('Voce e o Holder, apostando a combinação '+comb+' num valor de',upk[3])
             result = comp_functions.lanca_dados(comb)
 
             if result == False: #Indica que você perdeu
                 saldo = saldo - upk[3]
-                print('Voce perdeu a jogada')
+                print('Voce perdeu a jogada!!')
                 if saldo <= 0:
-                    print('Voce atingiu saldo nulo')
-                    print('***FIM DE JOGO***')
-                    exit(0)
+                    print('Voce atingiu saldo nulo!!')
+                    dados = (upk[0], upk[1], 0, saldo)
+                    comp_functions.send(sock, dest, dados)
                 else:
-                    print('Seu saldo e de',saldo,'fichas')
+                    print('Seu saldo e de',saldo,'fichas!!')
                                     # em ordem: origem, jogador, resultado, saldo
                     dados = (upk[0], upk[1], 0, saldo)
                     comp_functions.send(sock, dest, dados)
 
             if result == True: #Indica que o jogador venceu
                 saldo = saldo + comp_functions.pontuation(upk[2])
-                print('Voce venceu a jogada')
-                print('Seu saldo e de ',saldo,'fichas')
+                print('Voce venceu a jogada!!')
+                print('Seu saldo e de',saldo,'fichas!')
                        # em ordem: origem, jogador, resultado, saldo
                 dados = (upk[0], upk[1], 1, saldo)
                 comp_functions.send(sock, dest, dados)
 
         else:   #Você não é o holder, passa a mensagem pra frente
-            print('O Holder e',upk[1],'aguarde o resultado das jogadas...')
+            print('O Holder e '+upk[1]+', aguarde o resultado das jogadas...')
             dados = (upk[0], upk[1], upk[2], upk[3])
             comp_functions.send(sock, dest, dados) 
 
@@ -175,21 +180,31 @@ while(True):
         upk = comp_functions.receiv(sock)    # em ordem: Origem, Holder, resultado, saldo
         if upk[1] != 'C':  #Se você é o holder ignore, se não imprime na tela
             if upk[2] == 1:
-                print('O jogador ',upk[1],' venceu a partida, seu saldo atual e: ',upk[3])
+                print('O jogador '+upk[1]+' venceu a partida! Seu saldo atual e:',upk[3])
                 print('************Iniciando uma nova partida*************')
                 dados = (upk[0], upk[1], upk[2], upk[3])
                 comp_functions.send(sock, dest, dados)
             else:
-                print('O jogador ',upk[1],' perdeu a partida, seu saldo atual e: ',upk[3])
-                print('************Iniciando uma nova partida*************')
+                print('O jogador '+upk[1]+' perdeu a partida! Seu saldo atual e:',upk[3])
                 dados = (upk[0], upk[1], upk[2], upk[3])
                 comp_functions.send(sock, dest, dados)
+                if upk[3] <= 0:
+                    print('***FIM DE JOGO***')
+                    exit(0)
+                else:
+                    print('************Iniciando uma nova partida*************')
         else:
             dados = (upk[0], upk[1], upk[2], upk[3])
             comp_functions.send(sock, dest, dados)
+            if saldo <= 0:
+                print('***FIM DE JOGO***')
+                exit(0)
+            else:
+                print('************Iniciando uma nova partida*************')
+
         #Se a origem é de quem você recebe, aguarde o bastão
         if upk[0] == 'B':
             data, _ = sock.recvfrom(100)
             if data == b'bastao':
-                print('Voce recebeu o bastao')
+                print('Voce recebeu o bastao!!')
                 bastao = True
