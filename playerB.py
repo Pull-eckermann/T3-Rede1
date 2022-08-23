@@ -113,7 +113,7 @@ while(True):
                         comp_functions.send(sock, dest, dados)
                         break
         #---------------------------------------------------------------------------------------------
-        #Aguarda menssagem dar a volta na rede, fim da partida e passa o bastão
+        #Aguarda menssagem dar a volta na rede, fim da rodada e passa o bastão
         while True:    
             upk = comp_functions.receiv(sock)
             if upk[0] == 'B':  #Mensagem passou por toda a rede
@@ -122,7 +122,7 @@ while(True):
                 sock.sendto(jogada, dest)
                 bastao = False
                 break        #Passa para o próximo laço
-        print('************Iniciando uma nova partida*************')
+        print('************Iniciando uma nova rodada*************')
     #Você não possui o bastão -----------------------------------------
     else:
         print('Aguardando aposta...')
@@ -176,23 +176,23 @@ while(True):
             dados = (upk[0], upk[1], upk[2], upk[3])
             comp_functions.send(sock, dest, dados) 
 
-        #Aguarde o resultado da partida
+        #Aguarde o resultado da rodada
         upk = comp_functions.receiv(sock)    # em ordem: Origem, Holder, resultado, saldo
         if upk[1] != 'B':  #Se você é o holder ignore, se não imprime na tela
             if upk[2] == 1:
-                print('O jogador '+upk[1]+' venceu a partida! Seu saldo atual e:',upk[3])
-                print('************Iniciando uma nova partida*************')
+                print('O jogador '+upk[1]+' venceu a rodada! Seu saldo atual e:',upk[3])
+                print('************Iniciando uma nova rodada*************')
                 dados = (upk[0], upk[1], upk[2], upk[3])
                 comp_functions.send(sock, dest, dados)
             else:
-                print('O jogador '+upk[1]+' perdeu a partida! Seu saldo atual e:',upk[3])
+                print('O jogador '+upk[1]+' perdeu a rodada! Seu saldo atual e:',upk[3])
                 dados = (upk[0], upk[1], upk[2], upk[3])
                 comp_functions.send(sock, dest, dados)
                 if upk[3] <= 0:
                     print('***FIM DE JOGO***')
                     exit(0)
                 else:
-                    print('************Iniciando uma nova partida*************')
+                    print('************Iniciando uma nova rodada*************')
         else:
             dados = (upk[0], upk[1], upk[2], upk[3])
             comp_functions.send(sock, dest, dados)
@@ -200,7 +200,7 @@ while(True):
                 print('***FIM DE JOGO***')
                 exit(0)
             else:
-                print('************Iniciando uma nova partida*************')
+                print('************Iniciando uma nova rodada*************')
 
         #Se a origem é de quem você recebe, aguarde o bastão
         if upk[0] == 'A':

@@ -130,16 +130,16 @@ def lanca_dados(aposta):
   
 def send(sock, dest, dados):
   enquadramento = b'K'
-  #Calcula CRC
-  crc = dados[2]^dados[3]
-  # em ordem: Enquadramento, Origem, Holder, aposta, valor, CRC
-  packed = struct.pack('c c c i i i',enquadramento, dados[0].encode(), dados[1].encode(), dados[2], dados[3], crc)
+  #Calcula paridade
+  paridade = dados[2]^dados[3]
+  # em ordem: Enquadramento, Origem, Holder, aposta, valor, paridade
+  packed = struct.pack('c c c i i i',enquadramento, dados[0].encode(), dados[1].encode(), dados[2], dados[3], paridade)
   sock.sendto(packed, dest)
 
 def receiv(sock):
   while True:
     data, _ = sock.recvfrom(100)
-    # em ordem: Enquadramento, Origem, Holder, aposta, valor, CRC
+    # em ordem: Enquadramento, Origem, Holder, aposta, valor, paridade
     upk = struct.unpack('c c c i i i', data)
     if upk[0] == b'K':  #O enquadramento esta correto
       if upk[3]^upk[4] == upk[5]: #Não foi encontrado erro na mensagem
