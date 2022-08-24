@@ -1,7 +1,9 @@
 import re
 import numpy
 import random
-import struct
+import struct 
+from time import sleep
+import os
 
 #Tabela de pontuação
 PAR = 1
@@ -54,10 +56,14 @@ def lanca_dados(aposta):
   d1 = d2 = d3 = d4 = d5 = False
 
   #Faz as jogadas de dados
+  os.system('clear')
   print('INICIANDO JOGADA DE DADOS')
+  sleep(2)
   for i in range(1,4):
-    print('-----------------------')
-    print('Tentativa numero',i)
+    os.system('clear')
+    print('Apostando na combinação: '+aposta)
+    print('Tentativa numero',i,', Jogando os dados...')
+    sleep(3)
     if d1 == False:
       dado1 = random.randint(1, 6)
     print('Dado1:',dado1)
@@ -74,8 +80,9 @@ def lanca_dados(aposta):
       dado5 = random.randint(1, 6)
     print('Dado5:',dado5)
     if i != 3:
+      d1 = d2 = d3 = d4 = d5 = False
       print('Voce poder bloquear ate 5 dados')
-      print('Digite, separando por espaço os dados que deseja bloquear (Ex\: 1 2 5)')
+      print('Digite, separando por espaço, os dados que deseja bloquear (Ex\: 1 2 5)')
       k = input('(Se nenhum, digite 0): ')
       if k != '0':
         if '1' in k and d1 == False:
@@ -138,7 +145,7 @@ def send(sock, dest, dados):
 
 def receiv(sock):
   while True:
-    data, _ = sock.recvfrom(100)
+    data, _ = sock.recvfrom(20)
     # em ordem: Enquadramento, Origem, Holder, aposta, valor, paridade
     upk = struct.unpack('c c c i i i', data)
     if upk[0] == b'K':  #O enquadramento esta correto

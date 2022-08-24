@@ -1,8 +1,10 @@
 import re
 import socket
+from time import sleep
 import numpy
 import struct
 import comp_functions
+import os
 
 #Cabeçalho de envio pela rede
 UDP_IP = "127.0.0.1"
@@ -18,6 +20,8 @@ sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
 
 sock.bind((UDP_IP, UDP_PORTA_REC))
+
+os.system('clear')
 print('***INICIO DO JOGO***')
 while(True):
     #Você é a origem e possui o bastão -----------------------------------------
@@ -54,6 +58,7 @@ while(True):
 
             comb = comp_functions.combination(upk[2])
             print('Voce e o Holder, apostando a combinação '+comb+' num valor de',upk[3])
+            sleep(2)
             result = comp_functions.lanca_dados(comb)
 
             if result == False: #Indica que a origem perdeu
@@ -149,6 +154,7 @@ while(True):
         if upk[1] == 'A': #Você é holder
             comb = comp_functions.combination(upk[2])
             print('Voce e o Holder, apostando a combinação '+comb+' num valor de',upk[3])
+            sleep(2)
             result = comp_functions.lanca_dados(comb)
 
             if result == False: #Indica que você perdeu
